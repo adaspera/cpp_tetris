@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <windows.h>
 #include "engine.hpp"
 
 const int GRID_COLUMNS = 10;
@@ -9,7 +10,7 @@ const int GRID_ROWS = 16;
 const int CELL_SIZE = 30; 
 const int SCREEN_WIDTH = GRID_COLUMNS * CELL_SIZE;
 const int SCREEN_HEIGHT = GRID_ROWS * CELL_SIZE;
-const int GAME_SPEED = 100;
+const int GAME_SPEED = 200;
 
 const std::vector<std::vector<std::array<int, 2>>> SHAPES = {
     { {0,0}, {0,1}, {0,2}, {0,3}  },
@@ -17,11 +18,11 @@ const std::vector<std::vector<std::array<int, 2>>> SHAPES = {
 };
 
 
-enum CollisionSide {
-    NONE,
-    SIDES,
-    BOTTOM
-};
+// enum CollisionSide {
+//     NONE,
+//     SIDES,
+//     BOTTOM
+// };
 
 class Tetromino {
 public:
@@ -30,9 +31,9 @@ public:
 
     Tetromino(std::vector<std::array<int, 2>> shape) : shape(shape), x(GRID_COLUMNS/2), y(0) {};
 
-    void move(int, int);
+    void move(int, int, std::vector<Tetromino>* tetrominos);
     void draw(SDL_Renderer*);
-    CollisionSide collisionCheck();
+    bool collisionCheck(std::vector<Tetromino> tetrominos);
 };
 
 void Tetromino::draw(SDL_Renderer* renderer) {
@@ -42,28 +43,80 @@ void Tetromino::draw(SDL_Renderer* renderer) {
     }
 }
 
-void Tetromino::move(int dx, int dy) {
+void spawnTetromino(std::vector<Tetromino>* tetrominos) {
+    tetrominos->push_back(Tetromino(SHAPES[0]));
+}
 
-    switch (collisionCheck()) {
-    case NONE:
-        break;
-    case SIDES:
-        dx = 0;
-    case BOTTOM:
-        dy = 0;
-    };
+void Tetromino::move(int dx, int dy, std::vector<Tetromino>* tetrominos) {
 
+    int ogX = x;
+    int ogY = y;
+    
     x += dx;
     y += dy;
+
+    switch (collisionCheck(*tetrominos)) {
+    case false:
+        std::cout<<"none "<<dy<<dx;
+        break;
+    case true:
+        if (dx != 0) {
+            std::cout<<"sides ";
+            x = ogX;
+            y = ogY;
+        }
+        else {
+            std::cout<<"bottom ";
+            x = ogX;
+            y = ogY;
+            spawnTetromino(tetrominos);
+        }
+    };
+
 }
 
-CollisionSide Tetromino::collisionCheck() {
+bool Tetromino::collisionCheck(std::vector<Tetromino> tetrominos) {
+
+    for (auto cubeMoving: shape) {
+        if (cubeMoving[1] + y >= GRID_ROWS) return true; // bottom grid
+        else if (cubeMoving[0] + x >= GRID_COLUMNS || cubeMoving[0] + x <= -1) return true; //sides grid
+
+        for (size_t i = 0; i < tetrominos.size() - 1; ++i) {
+            Tetromino& tetroSitting = tetrominos[i];
+
+            for (auto cubeSitting: tetroSitting.shape) {
+                if (cubeMoving[0] + x == cubeSitting[0] + tetroSitting.x && cubeMoving[1] + y == cubeSitting[1] + tetroSitting.y) return true;
+            }
+        }
+
+    }
+
+    /////////////
     
-    return NONE; //next TODO
-}
-
-void spawnTetramino(std::vector<Tetromino>* tetrominos) {
-    tetrominos->push_back(Tetromino(SHAPES[0]));
+    // if (tetrominos.size() == 1) {
+    //     for (auto cubeMoving: tetrominos.back().shape) {
+    //         if (cubeMoving[1] + tetrominos.back().y == GRID_ROWS - 1) return BOTTOM;
+    //     }
+    // }
+    // else {
+    //     // each tetromino exept last
+    //     for (size_t i = 0; i <= tetrominos.size() - 2; ++i) {
+    //         // each siting cube
+    //         for (auto cubeSitting: tetrominos[i].shape) {
+    //             // each moving cube
+    //             for (auto cubeMoving: tetrominos.back().shape) {
+                    
+    //                 if (cubeMoving[1] + tetrominos.back().y == GRID_ROWS - 1) return BOTTOM;
+    //                 //else if (cubeSitting[1] + tetrominos[i].y == cubeMoving[1] + tetrominos.back().y) return BOTTOM;
+    //                 else if (cubeSitting[0] + tetrominos[i].x == cubeMoving[0] + tetrominos.back().x &&
+    //                     cubeSitting[1] + tetrominos[i].y == cubeMoving[1] + tetrominos.back().y)  return SIDES; //temp TODO
+    //                     //kadangi nepermetam dx reiksmes nezinom i kuria puse juda tetro del to nezinom ar bus soninis colision TODO
+    //             }
+    //         }
+    //     }
+    // }
+    
+    return false;
 }
 
 void drawGrid(SDL_Renderer* renderer) {
@@ -80,7 +133,27 @@ void drawGrid(SDL_Renderer* renderer) {
     }
 }
 
+void refresh(Engine *engine, std::vector<Tetromino> tetrominos) {
+    SDL_SetRenderDrawColor(engine->renderer, 0, 0, 0, 255); // Black background
+    SDL_RenderClear(engine->renderer);
+
+    drawGrid(engine->renderer);
+
+    for (auto& tetro: tetrominos) {
+        tetro.draw(engine->renderer); 
+    }
+
+    SDL_RenderPresent(engine->renderer);
+}
+
 int main(int argc, char* argv[]) {
+
+    AllocConsole();
+
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+
+    std::cout << "Debug console" << std::endl;
 
     Engine *engine = new Engine();
 
@@ -90,7 +163,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<Tetromino> tetrominos;
-    spawnTetramino(&tetrominos);
+    spawnTetromino(&tetrominos);
 
     bool quit = false;
     SDL_Event e;
@@ -106,31 +179,29 @@ int main(int argc, char* argv[]) {
             case SDL_KEYDOWN:
                 switch (e.key.keysym.sym) {
                 case SDLK_a:
-                    tetrominos.back().move(-1,0);
+                    tetrominos.back().move(-1,0, &tetrominos);
+                    refresh(engine, tetrominos);
                     break;
                 case SDLK_s:
-                    tetrominos.back().move(0,1);
+                    tetrominos.back().move(0,1, &tetrominos);
+                    refresh(engine, tetrominos);
                     break;
                 case SDLK_d:
-                    tetrominos.back().move(1,0);
+                    tetrominos.back().move(1,0, &tetrominos);
+                    refresh(engine, tetrominos);
                     break;
                 }
             }
 
         }
 
-        SDL_SetRenderDrawColor(engine->renderer, 0, 0, 0, 255); // Black background
-        SDL_RenderClear(engine->renderer);
+        refresh(engine, tetrominos);
 
-        drawGrid(engine->renderer);
+        tetrominos.back().move(0,1, &tetrominos);
 
-        for (auto& tetro: tetrominos) {
-            tetro.draw(engine->renderer);
-            tetro.move(0,1);
-        }
         SDL_Delay(GAME_SPEED);
 
-        SDL_RenderPresent(engine->renderer);
+        //
     }
 
     engine->~Engine();
