@@ -1,6 +1,6 @@
 set files=%~dp0\main\src\main.cpp %~dp0\main\src\engine.cpp
 
-set libs=%~dp0\lib\SDL2main.lib %~dp0\lib\SDL2.lib shell32.lib
+set libs=%~dp0\lib\SDL2main.lib %~dp0\lib\SDL2.lib %~dp0\lib\SDL2_ttf.lib shell32.lib
 
 call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64
 @echo on

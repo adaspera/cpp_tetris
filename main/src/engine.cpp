@@ -1,11 +1,12 @@
 #include <engine.hpp>
-#include<iostream>
+#include <iostream>
 
 
 
 Engine::Engine() {
     window = nullptr;
     renderer = nullptr;
+    font = nullptr;
 }
 
 Engine::~Engine() {
@@ -33,5 +34,22 @@ bool Engine::init(int screen_width, int screen_height) {
         return false;
     }
     
+    return true;
+}
+
+bool Engine::initFont() {
+
+    if ( TTF_Init() < 0 ) {
+	    std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << std::endl;
+        return false;
+    }
+    
+    font = TTF_OpenFont("main/font/impact.ttf", 24);
+
+    if ( !font ) {
+        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+        return false;
+    }
+
     return true;
 }
