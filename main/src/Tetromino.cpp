@@ -35,7 +35,7 @@ bool Tetromino::collisionCheck() {
 
         for (int i = 0; i < GRID_COLUMNS; ++i) {
             for (int j = 0; j < GRID_ROWS; ++j) {
-                if (gridBlocks[i][j]) {
+                if (gridBlocks[i][j].is) {
                     if (cubeMoving[0] + x == i && cubeMoving[1] + y == j) return true;
                 }
             }
@@ -48,7 +48,8 @@ bool Tetromino::collisionCheck() {
 void spawnTetromino(Tetromino* tetromino) {
 
     for (auto block: tetromino->shape) {
-        gridBlocks[tetromino->x + block[0]][tetromino->y + block [1]] = true;
+        gridBlocks[tetromino->x + block[0]][tetromino->y + block [1]].is = true;
+        gridBlocks[tetromino->x + block[0]][tetromino->y + block [1]].color = tetromino->color;
     }
 
     std::srand(std::time(nullptr));

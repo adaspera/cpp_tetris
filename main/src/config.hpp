@@ -34,7 +34,12 @@ const std::vector<SDL_Color> COLORS = {
      {0,240,240,255}  //Cyan
 };
 
-bool gridBlocks[GRID_COLUMNS][GRID_ROWS];
+struct DeadTetrominoBlock {
+    SDL_Color color;
+    bool is;
+};
+
+DeadTetrominoBlock gridBlocks[GRID_COLUMNS][GRID_ROWS];
 int score;
 bool gameOver;
 

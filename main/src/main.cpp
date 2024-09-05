@@ -47,7 +47,10 @@ void drawScoreboard(SDL_Renderer* renderer, TTF_Font* font) {
 void drawBlocks(SDL_Renderer* renderer) {
     for (int i = 0; i < GRID_COLUMNS; ++i) {
         for (int j = 0; j < GRID_ROWS; ++j) {
-            if (gridBlocks[i][j]){
+            if (gridBlocks[i][j].is){
+                SDL_SetRenderDrawColor(renderer, 
+                    gridBlocks[i][j].color.r, gridBlocks[i][j].color.g, gridBlocks[i][j].color.b, gridBlocks[i][j].color.a);
+                    
                 SDL_Rect square = { i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE };
                 SDL_RenderFillRect(renderer, &square);
             }
@@ -58,12 +61,12 @@ void drawBlocks(SDL_Renderer* renderer) {
 void clearRow(int row) {
     for (int i = 0; i < GRID_COLUMNS; ++i) {
         for (int j = row; j > 0; --j) {
-            gridBlocks[i][j] = gridBlocks[i][j-1];
+            gridBlocks[i][j].is = gridBlocks[i][j-1].is;
         }
     }
 
     for (int i = 0; i < GRID_COLUMNS; ++i) {
-        gridBlocks[i][0] = false;
+        gridBlocks[i][0].is = false;
     }
 }
 
@@ -74,7 +77,7 @@ int checkForCompletion() {
         n = 0;
 
         for (int j = 0; j < GRID_COLUMNS; ++j) {
-            if (gridBlocks[j][i]) ++n;
+            if (gridBlocks[j][i].is) ++n;
         }
 
         if (n == GRID_COLUMNS) { 
