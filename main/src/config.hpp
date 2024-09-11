@@ -10,9 +10,12 @@ const int GRID_ROWS = 16;
 const int CELL_SIZE = 30;
 const int SCORE_WINDOW_WIDTH = 200;
 const int GAME_SPEED = 200;
+const int TICK_INTERVAL = 30;
 
 const int SCREEN_WIDTH = GRID_COLUMNS * CELL_SIZE + SCORE_WINDOW_WIDTH;
 const int SCREEN_HEIGHT = GRID_ROWS * CELL_SIZE;
+
+const bool DEBUG_CONSOLE = false;
 
 const std::vector<std::vector<std::array<int, 2>>> SHAPES = {
     { {0,0}, {0,1}, {0,2}, {0,3} }, // I

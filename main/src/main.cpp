@@ -11,6 +11,20 @@
 #include "engine.hpp"
 #include "Tetromino.cpp"
 
+static Uint32 next_tick_time;
+static Uint32 next_move_time;
+
+Uint32 time_left(Uint32 next_time)
+{
+    Uint32 now;
+
+    now = SDL_GetTicks();
+    if(next_time <= now)
+        return 0;
+    else
+        return next_time - now;
+}
+
 void drawGrid(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     
@@ -137,12 +151,15 @@ void DrawGameOver(Engine *engine) {
 
 int main(int argc, char* argv[]) {
 
-    AllocConsole();
+    if (DEBUG_CONSOLE) {
+        AllocConsole();
 
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
 
-    std::cout << "Debug console" << std::endl;
+        std::cout << "Debug console" << std::endl;
+    }
+    
 
     Engine *engine = new Engine();
 
@@ -200,10 +217,11 @@ int main(int argc, char* argv[]) {
 
         refresh(engine, tetromino);
 
-        tetromino.move(0,1);
-
-        std::cout<<"["<<gameOver<<"]";
-
+        if (!time_left(next_move_time)) {
+            tetromino.move(0,1);
+            next_move_time += GAME_SPEED;
+        }
+            
 
         while (!quit && gameOver) {
             DrawGameOver(engine);
@@ -225,7 +243,8 @@ int main(int argc, char* argv[]) {
         }
 
 
-        SDL_Delay(GAME_SPEED);
+        SDL_Delay(time_left(next_tick_time));
+        next_tick_time += TICK_INTERVAL;
 
     }
 
